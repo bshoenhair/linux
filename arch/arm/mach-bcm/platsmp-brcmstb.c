@@ -157,16 +157,6 @@ static void brcmstb_cpu_die(u32 cpu)
 {
 	v7_exit_coherency_flush(all);
 
-	/* Prevent all interrupts from reaching this CPU. */
-	arch_local_irq_disable();
-
-	/*
-	 * Final full barrier to ensure everything before this instruction has
-	 * quiesced.
-	 */
-	isb();
-	dsb();
-
 	per_cpu_sw_state_wr(cpu, 0);
 
 	/* Sit and wait to die */
