@@ -323,6 +323,10 @@ static void brcmstb_secondary_init(unsigned int cpu)
 
 static int brcmstb_boot_secondary(unsigned int cpu, struct task_struct *idle)
 {
+	/* Missing the brcm,brcmstb-smpboot DT node? */
+	if (!cpubiuctrl_block || !hif_cont_block)
+		return -ENODEV;
+
 	/*
 	 * set synchronisation state between this boot processor
 	 * and the secondary one
