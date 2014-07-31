@@ -58,6 +58,10 @@ static u32 cpu_rst_cfg_reg;
 static u32 hif_cont_reg;
 
 #ifdef CONFIG_HOTPLUG_CPU
+/*
+ * We must quiesce a dying CPU before it can be killed by the boot CPU. Because
+ * one or more cache may be disabled, we must flush to ensure coherency.
+ */
 static DEFINE_PER_CPU_ALIGNED(int, per_cpu_sw_state);
 
 static int per_cpu_sw_state_rd(u32 cpu)
@@ -68,10 +72,9 @@ static int per_cpu_sw_state_rd(u32 cpu)
 
 static void per_cpu_sw_state_wr(u32 cpu, int val)
 {
-	per_cpu(per_cpu_sw_state, cpu) = val;
 	dmb();
+	per_cpu(per_cpu_sw_state, cpu) = val;
 	sync_cache_w(SHIFT_PERCPU_PTR(&per_cpu_sw_state, per_cpu_offset(cpu)));
-	dsb_sev();
 }
 #else
 static inline void per_cpu_sw_state_wr(u32 cpu, int val) { }
@@ -300,28 +303,11 @@ static void __init brcmstb_cpu_ctrl_setup(unsigned int max_cpus)
 		return;
 }
 
-static DEFINE_SPINLOCK(boot_lock);
-
-static void brcmstb_secondary_init(unsigned int cpu)
-{
-	/*
-	 * Synchronise with the boot thread.
-	 */
-	spin_lock(&boot_lock);
-	spin_unlock(&boot_lock);
-}
-
 static int brcmstb_boot_secondary(unsigned int cpu, struct task_struct *idle)
 {
 	/* Missing the brcm,brcmstb-smpboot DT node? */
 	if (!cpubiuctrl_block || !hif_cont_block)
 		return -ENODEV;
-
-	/*
-	 * set synchronisation state between this boot processor
-	 * and the secondary one
-	 */
-	spin_lock(&boot_lock);
 
 	/* Bring up power to the core if necessary */
 	if (brcmstb_cpu_get_power_state(cpu) == 0)
@@ -329,18 +315,11 @@ static int brcmstb_boot_secondary(unsigned int cpu, struct task_struct *idle)
 
 	brcmstb_cpu_boot(cpu);
 
-	/*
-	 * now the secondary core is starting up let it run its
-	 * calibrations, then wait for it to finish
-	 */
-	spin_unlock(&boot_lock);
-
 	return 0;
 }
 
 static struct smp_operations brcmstb_smp_ops __initdata = {
 	.smp_prepare_cpus	= brcmstb_cpu_ctrl_setup,
-	.smp_secondary_init	= brcmstb_secondary_init,
 	.smp_boot_secondary	= brcmstb_boot_secondary,
 #ifdef CONFIG_HOTPLUG_CPU
 	.cpu_kill		= brcmstb_cpu_kill,
