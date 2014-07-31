@@ -116,8 +116,6 @@ static void cpu_set_boot_addr(u32 cpu, unsigned long boot_addr)
 
 static void brcmstb_cpu_boot(u32 cpu)
 {
-	pr_info("SMP: Booting CPU%d...\n", cpu);
-
 	/*
 	 * set the reset vector to point to the secondary_startup
 	 * routine
@@ -135,8 +133,6 @@ static void brcmstb_cpu_power_on(u32 cpu)
 	 * power-on initialization.
 	 */
 	u32 tmp;
-
-	pr_info("SMP: Powering up CPU%d...\n", cpu);
 
 	/* Request zone power up */
 	pwr_ctrl_wr(cpu, ZONE_PWR_UP_REQ_MASK);
@@ -183,8 +179,6 @@ static void brcmstb_cpu_die(u32 cpu)
 static int brcmstb_cpu_kill(u32 cpu)
 {
 	u32 tmp;
-
-	pr_info("SMP: Powering down CPU%d...\n", cpu);
 
 	while (per_cpu_sw_state_rd(cpu))
 		;
