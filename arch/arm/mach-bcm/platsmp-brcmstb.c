@@ -166,7 +166,8 @@ static void brcmstb_cpu_die(u32 cpu)
 	wfi();
 
 	/* We should never get here... */
-	panic("Spurious interrupt on CPU %d received!\n", cpu);
+	while (1)
+		;
 }
 
 static int brcmstb_cpu_kill(u32 cpu)
