@@ -215,7 +215,7 @@ static int __init setup_hifcpubiuctrl_regs(struct device_node *np)
 	if (!syscon_np) {
 		pr_err("can't find phandle %s\n", name);
 		rc = -EINVAL;
-		goto cleanup;
+		goto out;
 	}
 
 	cpubiuctrl_block = of_iomap(syscon_np, 0);
@@ -244,9 +244,8 @@ static int __init setup_hifcpubiuctrl_regs(struct device_node *np)
 	}
 
 cleanup:
-	if (syscon_np)
-		of_node_put(syscon_np);
-
+	of_node_put(syscon_np);
+out:
 	return rc;
 }
 
@@ -262,7 +261,7 @@ static int __init setup_hifcont_regs(struct device_node *np)
 	if (!syscon_np) {
 		pr_err("can't find phandle %s\n", name);
 		rc = -EINVAL;
-		goto cleanup;
+		goto out;
 	}
 
 	hif_cont_block = of_iomap(syscon_np, 0);
@@ -276,9 +275,8 @@ static int __init setup_hifcont_regs(struct device_node *np)
 	hif_cont_reg = 0;
 
 cleanup:
-	if (syscon_np)
-		of_node_put(syscon_np);
-
+	of_node_put(syscon_np);
+out:
 	return rc;
 }
 
