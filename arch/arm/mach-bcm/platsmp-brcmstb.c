@@ -119,6 +119,9 @@ static void cpu_set_boot_addr(u32 cpu, unsigned long boot_addr)
 
 static void brcmstb_cpu_boot(u32 cpu)
 {
+	/* Mark this CPU as "up" */
+	per_cpu_sw_state_wr(cpu, 1);
+
 	/*
 	 * set the reset vector to point to the secondary_startup
 	 * routine
@@ -144,8 +147,6 @@ static void brcmstb_cpu_power_on(u32 cpu)
 	do {
 		tmp = pwr_ctrl_rd(cpu);
 	} while (!(tmp & ZONE_PWR_ON_STATE_MASK));
-
-	per_cpu_sw_state_wr(cpu, 1);
 }
 
 static int brcmstb_cpu_get_power_state(u32 cpu)
