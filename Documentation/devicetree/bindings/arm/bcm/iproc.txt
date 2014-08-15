@@ -1,0 +1,11 @@
+Broadcom iProc device tree bindings
+------------------------------------
+
+SoCs
+-------------------------------------------
+
+Boards with Cygnus SoCs shall have the following properties:
+
+Required root node property:
+
+compatible = "brcm,cygnus";
