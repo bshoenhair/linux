@@ -1,0 +1,48 @@
+Broadcom iProc Clock Controller
+
+This binding uses the common clock binding:
+Documentation/devicetree/bindings/clock/clock-bindings.txt
+
+The iProc clock controller manages clocks that are common to iProc chips.
+The controllers are split into a parent-child relationship where the parent is
+the PLL and the child controls the PLL's channels.
+
+The only PLL controlled is the ARM PLL which is derived from a 25MHz crystal.
+
+Required properties:
+- compatible: Must be one of the following:
+    "brcm,iproc-arm-a9pll" - Controls ARM PLL.
+    "brcm,iproc-arm-ch" -  Controls ARM PLL (parent) channels
+
+- reg: The base address of the PLL.
+
+- clocks: The input parent clock phandle for the clock. This is either a PLL,
+  or oscillator.
+
+- channel: The PLL channel that the clock belongs to. This is used for
+  "brcm,iproc-arm-ch" only.
+
+- #clock-cells: From common clock binding; shall be set to 0.
+
+Example:
+
+	osc: oscillator {
+		#clock-cells = <0>;
+		compatible = "fixed-clock";
+		clock-frequency = <25000000>;
+	};
+
+	a9pll: arm_clk@19000000 {
+		compatible = "brcm,iproc-arm-a9pll";
+		reg = <0x19000000 0x1000>;
+		#clock-cells = <0>;
+		clocks = <&osc>;
+	};
+
+	periph_clk: periph_clk@19000000 {
+		compatible = "brcm,iproc-arm-ch";
+		reg = <0x19000000 0x1000>;
+		#clock-cells = <0>;
+		clocks = <&a9pll>;
+		channel = <3>;
+	};
