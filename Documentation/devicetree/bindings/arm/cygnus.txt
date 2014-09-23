@@ -1,0 +1,12 @@
+Broadcom Cygnus device tree bindings
+------------------------------------
+
+All Cygnus boards shall have the following properties:
+
+Required root node property:
+	- compatible = "brcm,cygnus";
+
+Boards variants shall have the following additional properties:
+
+Required root node property for the BCM911360_ENTPHN board:
+	- compatible = "brcm,bcm911360_entphn";

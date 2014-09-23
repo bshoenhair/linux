@@ -1,0 +1,121 @@
+Broadcom Cygnus Clock Controller
+
+This binding uses the common clock binding:
+Documentation/devicetree/bindings/clock/clock-bindings.txt
+
+The Cygnus clock controller manages several PLL's and their channels, found only
+on the Cygnus chip. Clocks that are common to iProc can be found in the iProc
+clock controller. The controllers are split into a parent-child relationship
+where the parent is the PLL and the child controls the PLL's channels.
+
+All PLL's are derived from a 25MHz oscillator. The PLL's controlled are the
+GENPLL, LCPLL, the MIPI PLL. In addition, there are two clocks derived from
+GENPLL channel 0, and three that are derived directly from the oscillator.
+
+Required properties:
+- compatible: Must be one of the following:
+    "brcm,cygnus-lcpll-clk" - Controls LCPLL.
+    "brcm,cygnus-lcpll-ch" -  Controls LCPLL (parent) channels
+    "brcm,cygnus-genpll-clk" - Controls parent GENPLL
+    "brcm,cygnus-genpll-ch" - Controls GENPLL (parent) channels
+    "brcm,cygnus-mipipll-clk" - Controls MIPI PLL
+    "brcm,cygnus-mipipll-ch" - Controls parent MIPI PLL (parent) channels
+    "brcm,cygnus-osc-derived" - Controls oscillator (parent) derived channels
+        not controlled by any PLL.
+    "brcm,cygnus-pll-derived" - Controls clocks derived from GENPLL channel 0.
+	  These clocks have hard wired internal dividers and their clock rates
+	  scale according to the GENPLL channel.
+
+- reg: First register is the base address of the PLL. Register 2 and 3 are
+  required by some clocks. They are the top clock gating control used to
+  enable/disable clocks (ch 1), and the CRMU PLL AON CONTROL register which
+  powers on PLL/LDO's (ch 2).
+
+- clocks: The input parent clock phandle for the clock. This is either a PLL,
+  oscillator, or GENPLL channel 0.
+
+- channel: The PLL channel that the clock belongs to. This is used for
+  "brcm,cygnus-lcpll-ch", "brcm,cygnus-genpll-ch", "brcm,cygnus-mipipll-ch",
+  "brcm,cygnus-osc-derived" only.
+
+- div: Used by "brcm,cygnus-pll-derived" to define the hard coded internal
+  divider value. Used by "brcm,cygnus-osc-derived" to specify the programmable
+  divider.
+
+- #clock-cells: From common clock binding; shall be set to 0.
+
+Examples:
+
+		osc: oscillator {
+			#clock-cells = <0>;
+			compatible = "fixed-clock";
+			clock-frequency = <25000000>;
+		};
+
+		lcpll: lcpll@0301d02c {
+			#clock-cells = <0>;
+			compatible = "brcm,cygnus-lcpll-clk";
+			reg = <0x0301d02c 0x1c>;
+			clocks = <&osc>;
+		};
+
+		genpll: genpll@0301d000 {
+			#clock-cells = <0>;
+			compatible = "brcm,cygnus-genpll-clk";
+			reg = <0x0301d000 0x2c>,
+				  <0x180AA024 0x4>,
+				  <0x0301C020 0x4>;
+			clocks = <&osc>;
+		};
+
+		axi21_clk: genpll_ch0@0301d000 {
+			#clock-cells = <0>;
+			compatible = "brcm,cygnus-genpll-ch";
+			reg = <0x0301d000 0x2c>;
+			clocks = <&genpll>;
+			channel = <0>;
+		};
+
+		pcie_clk: lcpll_ch0@0301d02c {
+			compatible = "brcm,cygnus-lcpll-ch";
+			reg = <0x0301d02c 0x1c>;
+			#clock-cells = <0>;
+			clocks = <&lcpll>;
+			channel = <0>;
+		};
+
+		axi41_clk: axi41_clk {
+			reg = <0x0301d000 0x2c>;
+			#clock-cells = <0>;
+			compatible = "brcm,cygnus-pll-derived";
+			clocks = <&axi21_clk>;
+			div = <2>;
+		};
+
+		keypad_clk: keypad_clk@0301D048 {
+			compatible = "brcm,cygnus-osc-derived";
+			reg = <0x0301D048 0x4>,
+				  <0x180AA024 0x4>;
+			#clock-cells = <0>;
+			clocks = <&osc>;
+			channel = <0>;
+			div = <392>;
+		};
+
+		mipipll: mipipll@180a9800 {
+			#clock-cells = <0>;
+			compatible = "brcm,cygnus-mipipll-clk";
+			reg = <0x180a9800 0x2c>,
+				  top_clk_gating_ctrl: <0x180AA024 0x4>,
+				  crmu_pll_aon_ctrl: <0x0301C020 0x4>;
+			clocks = <&osc>;
+		};
+
+		lcd_clk: mipipll_ch1@180a9800 {
+			#clock-cells = <0>;
+			compatible = "brcm,cygnus-mipipll-ch";
+			reg = <0x180a9800 0x2c>,
+				  <0x180AA024 0x4>;
+			clocks = <&mipipll>;
+			channel = <1>;
+		};
