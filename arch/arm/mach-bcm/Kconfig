@@ -5,6 +5,37 @@ menuconfig ARCH_BCM
 
 if ARCH_BCM
 
+config ARCH_BCM_IPROC
+	bool "Broadcom ARMv7 iProc boards" if ARCH_MULTI_V7
+	select ARM_GIC
+	select CACHE_L2X0
+	select HAVE_ARM_TWD if LOCAL_TIMERS
+	select HAVE_CLK
+	select CLKSRC_OF
+	select CLKSRC_MMIO
+	select GENERIC_CLOCKEVENTS
+	select ARM_GLOBAL_TIMER
+	select ARCH_REQUIRE_GPIOLIB
+	select ARM_AMBA
+	select PINCTRL
+	select DEBUG_UART_8250
+	help
+	  This enables support for systems based on Broadcom IPROC architected SoCs.
+	  The IPROC complex contains one or more ARM CPUs along with common
+	  core periperals. Application specific SoCs are created by adding a
+	  uArchitecture containing peripherals outside of the IPROC complex.
+	  Currently supported SoCs are Cygnus.
+
+menu "iProc SoC based Machine types"
+	depends on ARCH_BCM_IPROC
+
+	config ARCH_BCM_CYGNUS
+		bool "Support Broadcom Cygnus board"
+		select USB_ARCH_HAS_EHCI if USB_SUPPORT
+		help
+		  Support for Broadcom Cygnus SoC.
+endmenu
+
 config ARCH_BCM_MOBILE
 	bool "Broadcom Mobile SoC Support" if ARCH_MULTI_V7
 	select ARCH_REQUIRE_GPIOLIB
